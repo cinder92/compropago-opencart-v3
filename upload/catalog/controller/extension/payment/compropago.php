@@ -8,17 +8,6 @@ class ControllerExtensionPaymentCompropago extends Controller {
 	public function index() {
         
         $this->language->load('payment/compropago');
-
-        /**
-         * POST	/v1/charges	crear un cargo
-         *   GET	/v1/charges/{payment_id}	verificar un cargo existente
-         *   POST	/v1/charges/{payment_id}/sms	enviar instrucciones vía SMS
-         */
-
-         /**
-          * curl https://api.compropago.com/v1/charges/c90870de-55a2-4b50-bd6b-9c7887787b35 \
--u sk_live_xxxxxxxxxxxxxx:pk_live_xxxxxxxxxxxxxxx
-          */
     
         $this->load->model('checkout/order');
         $this->load->model('setting/setting');
@@ -35,68 +24,10 @@ class ControllerExtensionPaymentCompropago extends Controller {
         $data['entry_payment_type'] = $this->language->get('entry_payment_type');
         $data['button_confirm'] = $this->language->get('button_confirm');
         $data['continue'] = $this->url->link('checkout/success');
-        //$this->addBreadcrums($data);
+        
         $this->addConfig($data,$client);
-        //$this->addConfig($data, $client);
-        /*$data['show_logos'] = true;
-        $data['providers'] = array(
-          array(
-            'internal_name' => 'BANAMEX',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-banamex-medium'
-          ),
-          array(
-            'internal_name' => 'OXXO',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-oxxo-medium'
-          ),
-          array(
-            'internal_name' => 'COPPEL',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-coppel-medium'
-          ),
-          array(
-            'internal_name' => 'EXTRA',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-extra-medium'
-          ),
-          array(
-            'internal_name' => 'TELECOMM',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-telecomm-medium'
-          ),
-          array(
-            'internal_name' => 'SEVEN_ELEVEN',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-seven-medium'
-          ),
-          array(
-            'internal_name' => 'FARMACIAS_BENAVIDES',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-benavides-medium'
-          ),
-          array(
-            'internal_name' => 'BANCOMER',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-bancomer-medium'
-          ),
-          array(
-            'internal_name' => 'ELEKTRA',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-elektra-medium'
-          ),
-          array(
-            'internal_name' => 'SCOTIABANK',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-scotiabank-medium'
-          ),
-          array(
-            'internal_name' => 'SANTANDER',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-santander-medium'
-          ),
-          array(
-            'internal_name' => 'BANORTE',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-banorte-medium'
-          ),
-          array(
-            'internal_name' => 'INBURSA',
-            'image_medium' => 'https://s3.amazonaws.com/compropago/assets/images/receipt/receipt-inbursa-medium'
-          )
-        );*/
-        //$uri = ( defined('VERSION') && ( version_compare( VERSION, '2.2.0.0' ,'>=' ) && version_compare( VERSION, '2.3.0.0' ,'<' ) ) ) ? 'payment/cp_providers' : 'default/template/payment/cp_providers.tpl';
-        //print_r($data);
+        
         return $this->load->view('extension/payment/compropago', $data);
-        //return $this->load->view( $uri , $data);
     
 	}
 
@@ -126,7 +57,7 @@ class ControllerExtensionPaymentCompropago extends Controller {
       'order_price' => (float) $order_info['total'],
       'customer_name' => $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'],
       'customer_email' => $order_info['email'],
-      'currency' => "MXN",//$order_info['currency_code'],
+      'currency' => $order_info['currency_code'],
       'payment_type' => $this->request->post['payment_type'],
       'app_client_name' => 'opencart',
       'app_client_version' => VERSION
@@ -192,7 +123,6 @@ class ControllerExtensionPaymentCompropago extends Controller {
     $data['order_id'] = $this->request->get['cp_id'];
     $this->addBreadcrums($data);
     $this->addData($data);
-    //$uri = ( defined('VERSION') && ( version_compare( VERSION, '2.2.0.0' ,'>=' ) && version_compare( VERSION, '2.3.0.0' ,'<' ) ) ) ? 'payment/cp_receipt' : 'default/template/payment/cp_receipt.tpl';
     $this->response->setOutput($this->load->view('extension/payment/compropago_receipt', $data));
   }
 
@@ -348,23 +278,17 @@ class ControllerExtensionPaymentCompropago extends Controller {
    * @param Client $client
    * 
    * @author Eduardo Aguilar <dante.aguilar41@gmail.com>
+   * @editor Dante Cervantes <contacto@dantecervantes.com>
    */
-  //https://github.com/compropago/compropago-php#gu%C3%ADa-básica-de-uso
+  
   private function addConfig(&$data, $client) {
-    //$active_providers = $this->config->get('cppayment_providers');
-    //$active_providers = explode(',', $active_providers);
-    
+   
     $order_id = $this->session->data['order_id'];
     $order_info = $this->model_checkout_order->getOrder($order_id);
 
-    //print_r($order_info);
-
-    $providers = $client->api->listProviders(0 /*para todos*/, "MXN"); //$order_info['currency_code']
-    //$final = [];
+    $providers = $client->api->listProviders(0, $order_info['currency_code']);
     foreach ($providers as $provider) {
-      //if (in_array($provider->internal_name, $active_providers)) {
         $data['providers'][] = $provider;
-      //}
     }
     $data['show_logos'] = $this->config->get('payment_compropago_show_logos') == '1' ? true : false;
   }
